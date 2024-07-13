@@ -1,4 +1,4 @@
-# 앰블 클론 코딩
+# 워들 클론 코딩
 
 <img width="1344" alt="스크린샷 2024-06-24 오후 10 29 33" src="https://github.com/mvldevtest/mvldev-assignment-9bdb7ad2-frontend-ESMOON/assets/82797463/50ff0220-1255-459e-87c7-1c35590b6ea7"></img>
 
