@@ -14,8 +14,6 @@ const initialState = {
   currentAttempt: "", // 현재 사용자가 입력하고 있는
   feedback: Array(6).fill(Array(5).fill("")), // 사용자가 제출한 답에 대한 feedback
   gameOver: false, // 게임 진행 상태
-  openToast: { state: false, message: "" }, // 토스트
-  openModal: false, // 모달
   keyStatus: {}, // 키보드
 };
 
@@ -30,7 +28,6 @@ const gameReducer = (state, action) => {
         (attempt) => attempt === ""
       );
       newAttempts[attemptIndex] = action.payload;
-
       const updatedFeedback = [...state.feedback];
       updatedFeedback[attemptIndex] = action.feedback;
 
@@ -43,10 +40,6 @@ const gameReducer = (state, action) => {
     }
     case "SET_GAME_OVER": // 게임 끝남
       return { ...state, gameOver: true };
-    case "SET_TOAST": //토스트
-      return { ...state, openToast: action.payload };
-    case "TOGGLE_MODAL": //모달
-      return { ...state, openModal: !state.openModal };
     case "UPDATE_KEY_STATUS": // 키보드 치는 중
       return { ...state, keyStatus: action.payload };
     default:
@@ -57,10 +50,11 @@ const gameReducer = (state, action) => {
 function Page() {
   const wordLength = 5;
 
-  const [answer, setAnswer] = useRecoilState(answerAtom);
-  console.log("🚀 ~ Page ~ answer:", answer);
   const [state, dispatch] = useReducer(gameReducer, initialState);
-  console.log("🚀 ~ Page ~ state:", state);
+
+  const [answer, setAnswer] = useRecoilState(answerAtom);
+  const [toast, setToast] = useState({ state: false, message: "" });
+  const [openModal, setOpenModal] = useState(false);
 
   const updateKeyStatus = (currentAttempt, newFeedback) => {
     const updatedKeyStatus = { ...state.keyStatus };
@@ -86,21 +80,15 @@ function Page() {
     if (!state.gameOver) {
       if (key === "ENTER") {
         if (state.currentAttempt.length < wordLength) {
-          dispatch({
-            type: "SET_TOAST",
-            payload: {
-              state: !state.openToast.state,
-              message: "글자수는 5글자 입니다.",
-            },
+          setToast({
+            state: !toast.state,
+            message: "글자수는 5글자 입니다.",
           });
         } else if (state.currentAttempt.length === wordLength) {
           if (!wordList.includes(state.currentAttempt.toLowerCase())) {
-            dispatch({
-              type: "SET_TOAST",
-              payload: {
-                state: !state.openToast.state,
-                message: "유효하지 않은 단어입니다.",
-              },
+            setToast({
+              state: !toast.state,
+              message: "유효하지 않은 단어입니다.",
             });
           } else {
             checkAnswer();
@@ -186,14 +174,14 @@ function Page() {
   };
 
   const handleCloseToast = () => {
-    dispatch({
-      type: "SET_TOAST",
-      payload: { state: !state.openToast.state, message: "" },
+    setToast({
+      state: !toast.state,
+      message: "",
     });
   };
 
   const handleCloseModal = () => {
-    dispatch({ type: "TOGGLE_MODAL" });
+    setOpenModal(!openModal);
   };
 
   const handleShare = () => {
@@ -229,7 +217,7 @@ function Page() {
 
   useEffect(() => {
     if (state.gameOver) {
-      dispatch({ type: "TOGGLE_MODAL" });
+      setOpenModal(!openModal);
     }
   }, [state.gameOver]);
 
@@ -283,15 +271,15 @@ function Page() {
 
       <Snackbar
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        open={state.openToast.state}
+        open={toast.state}
         onClose={handleCloseToast}
-        message={state.openToast.message}
+        message={toast.message}
         key={"top" + "center"}
         autoHideDuration={3000}
       />
 
       <Modal
-        open={state.openModal}
+        open={openModal}
         onClose={handleCloseModal}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
